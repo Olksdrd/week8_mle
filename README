@@ -1,0 +1,13 @@
+docker build -f ./training/Dockerfile -t training_image .
+
+docker run -dit training_image
+
+docker cp <container_id>:/app/model/logistic.pth ./model
+
+
+docker build -f ./inference/Dockerfile -t inference_image .
+
+docker run -dit inference_image
+
+docker cp <container_id>:/app/results/res.csv ./results
+

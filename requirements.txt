@@ -1,2 +1,4 @@
 numpy==1.26.3
 scikit_learn==1.2.2
+--find-links https://download.pytorch.org/whl/torch_stable.html
+torch==2.1.2+cpu

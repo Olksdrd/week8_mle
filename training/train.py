@@ -3,8 +3,11 @@ import os
 import pickle
 import logging
 
-from sklearn.linear_model import LogisticRegressionCV
-from sklearn.model_selection import cross_validate
+from sklearn.model_selection import train_test_split
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import TensorDataset, DataLoader
 
 logging.basicConfig(
     filename='history.log',
@@ -21,14 +24,38 @@ def load_training_data():
     return X, y
 
 
-def train_model(X, y):
-    logging.info('Doing cross-validation...')
-    model = LogisticRegressionCV(max_iter=500)
-    cv_results = cross_validate(model, X, y, cv=5)
-    logging.info(f'CV results: {np.mean(cv_results["test_score"]):.3f}')
+class Softmax(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.linear = nn.Linear(4, 3)
 
-    logging.info('Refitting the model...')
-    model.fit(X, y)
+    def forward(self, X):
+        preds = self.linear(X)
+        return preds
+
+
+def train_model(X, y):
+    X_train_tensor = torch.tensor(X, dtype=torch.float32)
+    y_train_tensor = torch.tensor(np.array(y), dtype=torch.int32).reshape(-1, 1)
+    y_train_tensor = y_train_tensor.type(torch.LongTensor)
+    train_dataset = TensorDataset(X_train_tensor, y_train_tensor) # create your datset
+    train_loader = DataLoader(train_dataset, batch_size = 5)
+
+    model = Softmax()
+    optimizer = optim.SGD(model.parameters(), lr = 0.01)
+    criterion = nn.CrossEntropyLoss()
+
+    loss_vals = []
+    epochs = 100
+    for epoch in range(epochs):
+        for x, y in train_loader:
+            optimizer.zero_grad()
+            y_pred = model(x)
+            loss = criterion(y_pred, y.squeeze())
+            loss_vals.append(loss)
+            loss.backward()
+            optimizer.step()
+    
     return model
 
 
@@ -40,18 +67,16 @@ def save_model(model):
         os.makedirs(MODEL_DIRECTORY)
 
     logging.info('Saving the model...')
-    path = os.path.join(MODEL_DIRECTORY, 'model1.pickle')
-    with open(path, 'wb') as f:
-        pickle.dump(model, f)
+    path = os.path.join(MODEL_DIRECTORY, 'logistic.pth')
+    torch.save(model.state_dict(), path)
 
 
 def main():
     logging.info(f'Starting {os.path.basename(__file__)} script...')
     X, y = load_training_data()
-    logistic = train_model(X, y)
-    save_model(logistic)
+    ann = train_model(X, y)
+    save_model(ann)
     logging.info(f'{os.path.basename(__file__)} execution finished.\n' + '-'*40)
-
 
 
 if __name__ == '__main__':
