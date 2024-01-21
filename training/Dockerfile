@@ -1,19 +1,19 @@
-# Dockerfile for training
-# Start from a base Python image
+### Dockerfile for model training
+# Get Python image
 FROM python:3.11
 
-# Changing the path to the working directory in the container
+# Set working directory
 WORKDIR /app
 
-# Copy data folder to Docker
+# Copy data (should be generated first!)
 COPY data/ /app/data
 
-# Copy the code itself
+# Copy training script
 COPY training /app/training
 
-# Install any necessary packages listed in requirements.txt
+# Install packages
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Train the model
+# Run the training
 RUN python3 training/train.py

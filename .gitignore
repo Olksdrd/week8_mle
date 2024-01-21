@@ -6,3 +6,4 @@ results/
 # file formats
 *.csv
 *.pickle
+*.log

@@ -1,24 +1,22 @@
-# Dockerfile for training
-# Start from a base Python image
+### Dockerfile for inference
+# Get Python image
 FROM python:3.11
 
-
+# Set working directory
 WORKDIR /app
 
-# Copy data folder to Docker
+# Copy data (should be generated first!)
 COPY data/ /app/data
 
-# Copy models folder to Docker
+# Copy model (should be trained first!)
 COPY model/ /app/model
 
-# Copy the code itself
+# Copy inference script
 COPY inference /app/inference
 
-# Copy usefull scripts and configs
-
-# Install any necessary packages listed in requirements.txt
+# Install packages
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Train the model
+# Run the inference
 RUN python3 inference/prediction.py
