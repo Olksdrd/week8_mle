@@ -1,0 +1,8 @@
+# folders
+data/
+model/
+results/
+
+# file formats
+*.csv
+*.pickle
