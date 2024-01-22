@@ -4,7 +4,6 @@ import logging
 
 import numpy as np
 import torch
-import torch.nn as nn
 
 logging.basicConfig(
     level=logging.INFO,
@@ -35,13 +34,18 @@ def load_inference_data():
         X = df[:, :-1]
         y = df[:, -1]
 
-        X_test_tensor = torch.tensor(X, dtype=torch.float32)
-        y_test_tensor = torch.tensor(np.array(y), dtype=torch.float32).reshape(-1, 1)
-        y_test_tensor = y_test_tensor.type(torch.LongTensor)
-
-        return X_test_tensor, y_test_tensor
+        return X, y
     except Exception:
         logging.exception('Failed to load inference data.')
+
+
+def data_to_tensor(X, y):
+    logging.info('Converting data to tensors...')
+    X_test_tensor = torch.tensor(X, dtype=torch.float32)
+    y_test_tensor = torch.tensor(np.array(y), dtype=torch.float32).reshape(-1, 1)
+    y_test_tensor = y_test_tensor.type(torch.LongTensor)
+
+    return X_test_tensor, y_test_tensor
 
 
 def load_model():
@@ -82,7 +86,8 @@ def save_predictions(preds):
 
 def main():
     logging.info(f'Starting {os.path.basename(__file__)} script...')
-    X_test_tensor, y_test_tensor = load_inference_data()
+    X, y = load_inference_data()
+    X_test_tensor, y_test_tensor = data_to_tensor(X, y)
     ann = load_model()
     predictions = get_predictions(ann, X_test_tensor)
     evaluate_predictions(y_test_tensor, predictions)

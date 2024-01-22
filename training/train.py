@@ -3,7 +3,6 @@ import sys
 import logging
 
 import numpy as np
-from sklearn.model_selection import train_test_split
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -43,12 +42,28 @@ def load_training_data():
         logging.exception('Failed to load training data.')
 
 
-def train_model(X, y):
+def determine_batch_size(X):
+    batch_vals = list(range(10, 1, -1))
+    res = [X.shape[0] % i for i in range(10, 1, -1)]
+    return batch_vals[res.index(0)]
+
+
+def data_to_tensor(X, y):
+    batch_size = determine_batch_size(X)
+    logging.info(f'Batch size set to {batch_size}.')
+
     X_train_tensor = torch.tensor(X, dtype=torch.float32)
     y_train_tensor = torch.tensor(np.array(y), dtype=torch.int32).reshape(-1, 1)
     y_train_tensor = y_train_tensor.type(torch.LongTensor)
     train_dataset = TensorDataset(X_train_tensor, y_train_tensor)
-    train_loader = DataLoader(train_dataset, batch_size=5)
+    train_loader = DataLoader(train_dataset, batch_size=batch_size)
+    logging.info('Data loaded into DataLoader.')
+
+    return train_loader
+
+
+def train_model(X, y):
+    train_loader = data_to_tensor(X, y)
 
     model = Softmax()
     optimizer = optim.SGD(model.parameters(), lr=0.01)

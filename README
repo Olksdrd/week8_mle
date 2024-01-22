@@ -8,6 +8,11 @@ docker cp <container_id>:/app/model/logistic.pth ./model
 docker build -f ./inference/Dockerfile -t inference_image .
 
 docker run -dit inference_image
+# docker run inference_image
 
 docker cp <container_id>:/app/results/res.csv ./results
+
+docker cp <container_id>:/app/history.log ./inference_container.log
+
+python -m unittest test.py
 
