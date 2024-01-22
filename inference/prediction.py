@@ -1,52 +1,60 @@
-import numpy as np
 import os
-import pickle
+import sys
 import logging
 
+import numpy as np
 import torch
 import torch.nn as nn
 
 logging.basicConfig(
-    filename='history.log',
     level=logging.INFO,
-    format='%(asctime)s:%(module)s:%(levelname)s:%(message)s'
+    format='%(asctime)s:%(module)s:%(levelname)s:%(message)s',
+    handlers=[
+        logging.FileHandler('history.log'),
+        logging.StreamHandler()
+    ]
 )
+
 
 CURRENT_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 MODEL_DIRECTORY = os.path.abspath(os.path.join(CURRENT_DIRECTORY, '../model'))
 RESULTS_DIRECTORY = os.path.abspath(os.path.join(CURRENT_DIRECTORY, '../results'))
+sys.path.append(os.path.dirname(CURRENT_DIRECTORY))
 
 
-class Softmax(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.linear = nn.Linear(4, 3)
-
-    def forward(self, X):
-        preds = self.linear(X)
-        return preds
+try:
+    from utils import Softmax
+except:
+    logging.exception('Failed to load the Softmax class from utils.py.')
 
 
 def load_inference_data():
-    logging.info('Loading data for inference...')
-    df = np.loadtxt('data/inference_data.csv', delimiter=',', dtype=float)
-    X = df[:, :-1]
-    y = df[:, -1]
+    try:
+        logging.info('Loading data for inference...')
+        df = np.loadtxt('data/inference_data.csv', delimiter=',', dtype=float)
+        X = df[:, :-1]
+        y = df[:, -1]
 
-    X_test_tensor = torch.tensor(X, dtype=torch.float32)
-    y_test_tensor = torch.tensor(np.array(y), dtype=torch.float32).reshape(-1, 1)
-    y_test_tensor = y_test_tensor.type(torch.LongTensor)
+        X_test_tensor = torch.tensor(X, dtype=torch.float32)
+        y_test_tensor = torch.tensor(np.array(y), dtype=torch.float32).reshape(-1, 1)
+        y_test_tensor = y_test_tensor.type(torch.LongTensor)
 
-    return X_test_tensor, y_test_tensor
+        return X_test_tensor, y_test_tensor
+    except Exception:
+        logging.exception('Failed to load inference data.')
+
 
 def load_model():
-    logging.info('Loading the model...')
-    path = os.path.join(MODEL_DIRECTORY, 'logistic.pth')
-    model = Softmax()
-    model.load_state_dict(torch.load(path))
-    model.eval()
+    try:
+        logging.info('Loading the model...')
+        path = os.path.join(MODEL_DIRECTORY, 'logistic.pth')
+        model = Softmax()
+        model.load_state_dict(torch.load(path))
+        model.eval()
 
-    return model
+        return model
+    except Exception:
+        logging.exception('Failed to load the model.')
 
 
 def get_predictions(model, X):

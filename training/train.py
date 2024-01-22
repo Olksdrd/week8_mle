@@ -1,48 +1,57 @@
-import numpy as np
 import os
-import pickle
+import sys
 import logging
 
+import numpy as np
 from sklearn.model_selection import train_test_split
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import TensorDataset, DataLoader
 
+
 logging.basicConfig(
-    filename='history.log',
     level=logging.INFO,
-    format='%(asctime)s:%(module)s:%(levelname)s:%(message)s'
+    format='%(asctime)s:%(module)s:%(levelname)s:%(message)s',
+    handlers=[
+        logging.FileHandler('history.log'),
+        logging.StreamHandler()
+    ]
 )
 
+
+CURRENT_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
+MODEL_DIRECTORY = os.path.abspath(os.path.join(CURRENT_DIRECTORY, '../model'))
+sys.path.append(os.path.dirname(CURRENT_DIRECTORY))
+
+
+try:
+    from utils import Softmax
+except:
+    logging.exception('Failed to load the Softmax class from utils.py.')
+
+
 def load_training_data():
-    logging.info('Loading training data...')
-    df = np.loadtxt('data/train_data.csv',
-                    delimiter=',', dtype=float)
-    X = df[:, :-1]
-    y = df[:, -1]
-    return X, y
-
-
-class Softmax(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.linear = nn.Linear(4, 3)
-
-    def forward(self, X):
-        preds = self.linear(X)
-        return preds
+    try:
+        logging.info('Loading training data...')
+        df = np.loadtxt('data/train_data.csv',
+                        delimiter=',', dtype=float)
+        X = df[:, :-1]
+        y = df[:, -1]
+        return X, y
+    except Exception:
+        logging.exception('Failed to load training data.')
 
 
 def train_model(X, y):
     X_train_tensor = torch.tensor(X, dtype=torch.float32)
     y_train_tensor = torch.tensor(np.array(y), dtype=torch.int32).reshape(-1, 1)
     y_train_tensor = y_train_tensor.type(torch.LongTensor)
-    train_dataset = TensorDataset(X_train_tensor, y_train_tensor) # create your datset
-    train_loader = DataLoader(train_dataset, batch_size = 5)
+    train_dataset = TensorDataset(X_train_tensor, y_train_tensor)
+    train_loader = DataLoader(train_dataset, batch_size=5)
 
     model = Softmax()
-    optimizer = optim.SGD(model.parameters(), lr = 0.01)
+    optimizer = optim.SGD(model.parameters(), lr=0.01)
     criterion = nn.CrossEntropyLoss()
 
     loss_vals = []
@@ -60,8 +69,6 @@ def train_model(X, y):
 
 
 def save_model(model):
-    CURRENT_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
-    MODEL_DIRECTORY = os.path.abspath(os.path.join(CURRENT_DIRECTORY, '../model'))
     logging.info('Creating "model" directory...')
     if not os.path.exists(MODEL_DIRECTORY):
         os.makedirs(MODEL_DIRECTORY)

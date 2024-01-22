@@ -1,14 +1,17 @@
-import numpy as np
 import os
 import logging
 
+import numpy as np
 from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
 
 logging.basicConfig(
-    filename='history.log',
     level=logging.INFO,
-    format='%(asctime)s:%(module)s:%(levelname)s:%(message)s'
+    format='%(asctime)s:%(module)s:%(levelname)s:%(message)s',
+    handlers=[
+        logging.FileHandler('history.log'),
+        logging.StreamHandler()
+    ]
 )
 
 

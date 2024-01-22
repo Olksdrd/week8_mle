@@ -11,6 +11,9 @@ COPY data/ /app/data
 # Copy training script
 COPY training /app/training
 
+# Copy utility function(s)
+COPY utils.py /app
+
 # Install packages
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
