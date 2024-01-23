@@ -9,3 +9,4 @@ __pycache__
 *.pickle
 *.log
 *.pth
+*.pyc
